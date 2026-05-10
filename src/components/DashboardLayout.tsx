@@ -20,6 +20,13 @@ interface LayoutProps {
 
 export default function DashboardLayout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      }
+    }
+  }, []);
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();

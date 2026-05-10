@@ -17,10 +17,14 @@ export default function Home() {
 
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-gray-600">Loading...</p>
+          <div
+            role="status"
+            aria-label="Loading"
+            className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-3"
+          />
+          <p className="text-gray-600 text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -29,19 +33,27 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-blue-800 to-indigo-900">
       {/* Navigation */}
-      <nav className="border-b border-white/10 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">BundlePro</h1>
-          <div className="space-x-4">
+      <nav className="border-b border-white/10 sm:backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">BundlePro</h1>
+          <div className="hidden sm:flex space-x-4">
             <Link
               href="/auth/signin"
-              className="px-6 py-2 text-white hover:bg-white/10 rounded-lg transition"
+              className="px-4 py-2 text-white hover:bg-white/10 rounded-lg transition text-sm"
             >
               Sign In
             </Link>
             <Link
               href="/auth/signup"
-              className="px-6 py-2 bg-white text-primary rounded-lg font-medium hover:bg-gray-50 transition"
+              className="px-4 py-2 bg-white text-primary rounded-lg font-medium hover:bg-gray-50 transition text-sm"
+            >
+              Get Started
+            </Link>
+          </div>
+          <div className="sm:hidden">
+            <Link
+              href="/auth/signup"
+              className="px-3 py-2 bg-white text-primary rounded-lg font-medium text-sm"
             >
               Get Started
             </Link>
@@ -50,17 +62,17 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="text-center text-white space-y-6 mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold leading-tight">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div className="text-center text-white space-y-5 mb-12">
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight">
             Automate Your Data Bundle Distribution
           </h2>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
+          <p className="text-base sm:text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
             BundlePro helps you manage, process, and automate data bundle
             distribution at scale with built-in duplicate detection and pricing
             management.
           </p>
-          <div className="pt-8 space-x-4">
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <Link
               href="/auth/signup"
               className="inline-flex items-center px-8 py-3 bg-white text-primary rounded-lg font-semibold hover:bg-gray-50 transition"
@@ -77,8 +89,8 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 hover:bg-white/15 transition">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 md:mt-24">
+          <div className="bg-white/10 sm:backdrop-blur-sm rounded-xl p-6 md:p-8 border border-white/20 hover:bg-white/15 transition">
             <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
               <Zap size={24} className="text-white" />
             </div>
@@ -119,7 +131,7 @@ export default function Home() {
         </div>
 
         {/* Key Features */}
-        <div className="mt-24 bg-white/10 backdrop-blur-sm rounded-xl p-12 border border-white/20">
+        <div className="mt-12 md:mt-24 bg-white/10 sm:backdrop-blur-sm rounded-xl p-6 md:p-12 border border-white/20">
           <h3 className="text-3xl font-bold text-white mb-8 text-center">
             Everything You Need
           </h3>

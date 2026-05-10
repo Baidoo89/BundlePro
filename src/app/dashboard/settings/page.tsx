@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import * as XLSX from "xlsx";
+// Lazy-load XLSX where needed to avoid bundling it into the main bundle
 import DashboardLayout from "@/components/DashboardLayout";
 import {
   Check,
@@ -513,9 +513,10 @@ export default function SettingsPage() {
         alert("Unsupported file type. Please use CSV, XLS, or XLSX.");
         return;
       }
-
       console.log("Processing file:", file.name, "extension:", extension);
       const fileData = extension === "csv" ? await file.text() : await file.arrayBuffer();
+
+      const XLSX = (await import('xlsx')) as any;
       const workbook = XLSX.read(fileData, {
         type: extension === "csv" ? "string" : "array",
       });
@@ -527,10 +528,10 @@ export default function SettingsPage() {
 
       console.log("Reading sheet:", firstSheet);
       const worksheet = workbook.Sheets[firstSheet];
-      const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+      const rawRows = XLSX.utils.sheet_to_json(worksheet, {
         defval: "",
         raw: false,
-      });
+      }) as Record<string, unknown>[];
 
       console.log("Raw rows from XLSX:", rawRows.length, rawRows);
       const rows = parseWorkbookRows(rawRows);
