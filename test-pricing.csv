@@ -1,0 +1,6 @@
+gigAmount,price,description,isActive
+1,120,1GB Daily,true
+2,230,2GB Weekly,true
+5,500,5GB Monthly,true
+10,900,10GB Monthly,true
+20,1800,20GB Monthly,true

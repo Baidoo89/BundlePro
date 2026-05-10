@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id                    String   @id @default(cuid())
+  name                  String?
+  email                 String?  @unique
+  emailVerified         DateTime?
+  image                 String?
+  password              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  accounts              Account[]
+  sessions              Session[]
+  priceLists            PriceList[]
+  pricingCollections    PricingCollection[]
+  apiCredentials        APICredential[]
+  bundles               Bundle[]
+  orders                Order[]
+  duplicates            DuplicateRecord[]
+}
+
+model PriceList {
+  id                    String   @id @default(cuid())
+  userId                String
+  gigAmount             Float    // e.g., 1, 2, 5, 10, 100
+  price                 Float    // Price for this gig amount
+  description           String?  // e.g., "5GB - Monthly"
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gigAmount])
+  @@index([userId])
+}
+
+model PricingCollection {
+  id                    String   @id @default(cuid())
+  userId                String
+  name                  String
+  sourceFileName        String?
+  isActive              Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries               PricingCollectionEntry[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([userId, isActive])
+}
+
+model PricingCollectionEntry {
+  id                    String   @id @default(cuid())
+  pricingCollectionId   String
+  gigAmount             Float
+  price                 Float
+  description           String?
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  pricingCollection     PricingCollection @relation(fields: [pricingCollectionId], references: [id], onDelete: Cascade)
+
+  @@unique([pricingCollectionId, gigAmount])
+  @@index([pricingCollectionId])
+  @@index([gigAmount])
+}
+
+model APICredential {
+  id                    String   @id @default(cuid())
+  userId                String
+  provider              String   // MTN, Airtel, Glo, Etisalat, etc.
+  apiKey                String   @db.Text
+  apiSecret             String?  @db.Text
+  endpoint              String   // API endpoint URL
+  isActive              Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model Bundle {
+  id                    String   @id @default(cuid())
+  userId                String
+  phoneNumber           String   // 10-digit phone number
+  gigAmount             Float    // GB amount (e.g., 5, 10, 100)
+  price                 Float    // Price calculated from PriceList
+  status                String   @default("pending") // pending, processing, completed, failed
+  provider              String?  // MTN, Airtel, Glo, Etisalat
+  transactionId         String?
+  errorMessage          String?  @db.Text
+  isDuplicate           Boolean  @default(false)
+  duplicateFlags        String   @db.Text @default("[]") // JSON array of flags
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  processedAt           DateTime?
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order                 Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId               String?
+
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Order {
+  id                    String   @id @default(cuid())
+  userId                String
+  totalGigs             Float
+  totalPrice            Float
+  itemCount             Int
+  status                String   @default("pending") // pending, processing, completed, failed
+  duplicateCount        Int      @default(0)
+  cleanCount            Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  processedAt           DateTime?
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bundles               Bundle[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DuplicateRecord {
+  id                    String   @id @default(cuid())
+  userId                String
+  phoneNumber           String
+  count                 Int      // How many times it appeared
+  duplicateType         String   // same_paste or last_24h
+  lastServedAt          DateTime? // When it was last served (if in DB)
+  flaggedAt             DateTime @default(now())
+  resolvedAt            DateTime?
+  isResolved            Boolean  @default(false)
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([flaggedAt])
+}
+
+model ProcessingLog {
+  id                    String   @id @default(cuid())
+  userId                String
+  orderId               String
+  action                String   // parse, calculate, check_duplicates, send_api
+  details               String   @db.Text // JSON details
+  success               Boolean
+  errorMessage          String?  @db.Text
+  createdAt             DateTime @default(now())
+}
