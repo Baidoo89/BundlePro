@@ -124,16 +124,16 @@ export default function BundleParserForm() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Pricing List</label>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Pricing List</label>
         <select
           value={selectedPricingCollectionId || ""}
           onChange={(e) => {
             const selected = pricingCollections.find((item) => item.id === e.target.value);
             setSelectedPricingCollection(selected?.id || null, selected?.name || null);
           }}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Use active/default list</option>
           {pricingCollections.map((collection) => (
@@ -148,46 +148,46 @@ export default function BundleParserForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Paste Your Data</label>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Paste Your Data</label>
         <textarea
           value={rawText}
           onChange={(e) => setRawText(e.target.value)}
           placeholder="Paste phone numbers and gig amounts here...\nExample:\n0557574477 5GB\n0557574477 5\n08012345678 10"
-          className="w-full h-40 p-4 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+          className="w-full h-32 sm:h-40 p-3 sm:p-4 border border-gray-300 rounded-lg font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
         />
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-gray-500 mt-1.5 sm:mt-2">
           Supported formats: &quot;0557574477 5GB&quot;, &quot;0557574477 5&quot;, &quot;0557574477 5 GB&quot;
         </p>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <button
           onClick={handleParse}
           disabled={isLoading || !rawText.trim()}
-          className="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 disabled:bg-gray-300 transition"
+          className="flex-1 px-3 sm:px-4 py-2.5 sm:py-2 bg-primary text-white rounded-lg font-medium text-sm sm:text-base hover:bg-primary/90 disabled:bg-gray-300 transition"
         >
           {isLoading ? "Parsing..." : "Parse Data"}
         </button>
         <button
           onClick={handleClear}
-          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition"
+          className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 border border-gray-300 text-gray-700 rounded-lg font-medium text-sm sm:text-base hover:bg-gray-50 transition"
         >
           Clear
         </button>
       </div>
 
       {lastBreakdown.length > 0 && (
-        <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-blue-900">Breakdown by GB</p>
-            <p className="text-xs text-blue-700">Counts and totals that make up the grand total</p>
+        <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 sm:p-4">
+          <div className="mb-2 sm:mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <p className="text-xs sm:text-sm font-semibold text-blue-900">Breakdown by GB</p>
+            <p className="text-xs text-blue-700">Counts and totals</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
             {lastBreakdown.map((item) => (
-              <div key={item.gigAmount} className="rounded-lg border border-blue-100 bg-white p-3 shadow-sm">
-                <p className="text-sm font-medium text-blue-900">{item.gigAmount} GB</p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">{item.count} orders</p>
-                <p className="text-xs text-gray-600">Contribution: {item.total.toFixed(2)}</p>
+              <div key={item.gigAmount} className="rounded-lg border border-blue-100 bg-white p-2 sm:p-3 shadow-sm">
+                <p className="text-xs sm:text-sm font-medium text-blue-900">{item.gigAmount} GB</p>
+                <p className="mt-1 text-base sm:text-lg font-semibold text-gray-900">{item.count}</p>
+                <p className="text-xs text-gray-600">₵{item.total.toFixed(2)}</p>
               </div>
             ))}
           </div>
@@ -195,28 +195,28 @@ export default function BundleParserForm() {
       )}
 
       {showErrors && (
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm font-medium text-yellow-800">⚠️ Some lines couldn&apos;t be parsed</p>
+        <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-xs sm:text-sm font-medium text-yellow-800">⚠️ Some lines couldn&apos;t be parsed</p>
           <p className="text-xs text-yellow-700 mt-1">Check the format of your data</p>
         </div>
       )}
 
       {pricingWarnings.length > 0 && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm font-medium text-red-800">🚫 Missing Pricing Entries</p>
-          <p className="text-xs text-red-700 mt-2 mb-3">These gig amounts are NOT in your pricing list and were skipped:</p>
+        <div className="p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-xs sm:text-sm font-medium text-red-800">🚫 Missing Pricing Entries</p>
+          <p className="text-xs text-red-700 mt-2 mb-2 sm:mb-3">These gig amounts are NOT in your pricing list and were skipped:</p>
           <div className="space-y-2">
             {pricingWarnings.map((warning) => (
               <div key={warning.gigAmount} className="text-xs text-red-700 bg-white rounded p-2">
                 <p className="font-medium">{warning.gigAmount} GB - {warning.count} order(s)</p>
-                <p className="text-red-600 mt-1">
-                  Phones: {warning.lines.slice(0, 3).map(l => l.phoneNumber).join(", ")}
-                  {warning.lines.length > 3 ? ` +${warning.lines.length - 3} more` : ""}
+                <p className="text-red-600 mt-1 break-words">
+                  {warning.lines.slice(0, 3).map(l => l.phoneNumber).join(", ")}
+                  {warning.lines.length > 3 ? ` +${warning.lines.length - 3}` : ""}
                 </p>
               </div>
             ))}
           </div>
-          <p className="text-xs text-red-700 mt-3">👉 Add these gig amounts to your pricing table to include them in calculations.</p>
+          <p className="text-xs text-red-700 mt-2 sm:mt-3">👉 Add these amounts to your pricing table.</p>
         </div>
       )}
     </div>
