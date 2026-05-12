@@ -31,17 +31,26 @@ export function normalizeGigAmount(text: string): number | null {
 
 /**
  * Extracts 10-digit phone numbers from text
- * Handles various formats: 0557574477, +2340557574477, 2340557574477, etc.
+ * Handles various formats: 0557574477, 557574477, +2340557574477, 2340557574477, etc.
  */
 export function extractPhoneNumber(text: string): string | null {
+  const normalizedText = text.trim();
+
   // Try to extract 10-digit number
-  const tenDigitMatch = text.match(/\b(\d{10})\b/);
+  const tenDigitMatch = normalizedText.match(/\b(\d{10})\b/);
   if (tenDigitMatch) {
     return tenDigitMatch[1];
   }
 
+  // Excel sometimes drops the leading 0 from local numbers.
+  // If we find a standalone 9-digit local number, restore the missing prefix.
+  const nineDigitMatch = normalizedText.match(/\b(\d{9})\b/);
+  if (nineDigitMatch) {
+    return `0${nineDigitMatch[1]}`;
+  }
+
   // Try to extract from longer patterns (11 or 13 digits starting with country code)
-  const countryMatch = text.match(/(?:\+?234|0)?(\d{10})\b/);
+  const countryMatch = normalizedText.match(/(?:\+?234|0)?(\d{10})\b/);
   if (countryMatch) {
     return countryMatch[1];
   }
