@@ -35,6 +35,16 @@ export function getPriceForGigAmount(
 }
 
 /**
+ * Checks if a gig amount exists in the pricing table
+ */
+export function isGigAmountInPricingTable(
+  gigAmount: number,
+  pricingTable: PricingEntry[]
+): boolean {
+  return pricingTable.some((p) => p.gigAmount === gigAmount);
+}
+
+/**
  * Calculates total gigs, price, and statistics
  */
 export function calculateTotals(

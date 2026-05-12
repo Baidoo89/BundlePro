@@ -19,6 +19,8 @@ interface ParseResult {
     breakdown: Array<{ gigAmount: number; count: number; total: number }>;
   };
   parseErrors: Array<{ line: string; reason: string }>;
+  pricingWarnings?: Array<{ gigAmount: number; count: number; lines: Array<{ phoneNumber: string; gigAmount: number }> }>;
+  missingPricingCount?: number;
 }
 
 type PricingCollection = { id: string; name: string; isActive: boolean };
@@ -28,6 +30,7 @@ export default function BundleParserForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [pricingCollections, setPricingCollections] = useState<PricingCollection[]>([]);
+  const [pricingWarnings, setPricingWarnings] = useState<Array<{ gigAmount: number; count: number; lines: Array<{ phoneNumber: string; gigAmount: number }> }>>([]);
 
   const {
     setParsedBundles,
@@ -97,7 +100,13 @@ export default function BundleParserForm() {
         Number(data.calculationsRaw?.itemCount ?? data.calculations.itemCount)
       );
       setLastBreakdown(data.calculations.breakdown || []);
-      setSuccess(`Successfully parsed ${data.bundles.length} bundles!`);
+      setPricingWarnings(data.pricingWarnings || []);
+      
+      let successMsg = `Successfully parsed ${data.bundles.length} bundles!`;
+      if ((data.missingPricingCount ?? 0) > 0) {
+        successMsg += ` (${data.missingPricingCount} skipped - missing pricing)`;
+      }
+      setSuccess(successMsg);
       setShowErrors((data.parseErrors || []).length > 0);
     } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -111,6 +120,7 @@ export default function BundleParserForm() {
     setRawText("");
     setShowErrors(false);
     setLastBreakdown([]);
+    setPricingWarnings([]);
   };
 
   return (
@@ -188,6 +198,25 @@ export default function BundleParserForm() {
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm font-medium text-yellow-800">⚠️ Some lines couldn&apos;t be parsed</p>
           <p className="text-xs text-yellow-700 mt-1">Check the format of your data</p>
+        </div>
+      )}
+
+      {pricingWarnings.length > 0 && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm font-medium text-red-800">🚫 Missing Pricing Entries</p>
+          <p className="text-xs text-red-700 mt-2 mb-3">These gig amounts are NOT in your pricing list and were skipped:</p>
+          <div className="space-y-2">
+            {pricingWarnings.map((warning) => (
+              <div key={warning.gigAmount} className="text-xs text-red-700 bg-white rounded p-2">
+                <p className="font-medium">{warning.gigAmount} GB - {warning.count} order(s)</p>
+                <p className="text-red-600 mt-1">
+                  Phones: {warning.lines.slice(0, 3).map(l => l.phoneNumber).join(", ")}
+                  {warning.lines.length > 3 ? ` +${warning.lines.length - 3} more` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-red-700 mt-3">👉 Add these gig amounts to your pricing table to include them in calculations.</p>
         </div>
       )}
     </div>

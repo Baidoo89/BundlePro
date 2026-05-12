@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { parseRawInput } from "@/lib/parser";
-import { calculateTotals, getPriceForGigAmount, formatCalculationResult } from "@/lib/calculation";
+import { calculateTotals, getPriceForGigAmount, formatCalculationResult, isGigAmountInPricingTable } from "@/lib/calculation";
 import { authOptions } from "../auth/[...nextauth]";
 import { resolvePricingEntries } from "@/lib/pricingCollections";
 
@@ -42,8 +42,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Add prices to bundles
-    const bundlesWithPrice = bundles.map((bundle) => ({
+    // Separate bundles into valid (with pricing) and invalid (missing pricing)
+    const pricingWarnings: Array<{ gigAmount: number; count: number; lines: Array<{ phoneNumber: string; gigAmount: number }> }> = [];
+    const validBundles: typeof bundles = [];
+    const missingPricingBundles: typeof bundles = [];
+
+    for (const bundle of bundles) {
+      if (isGigAmountInPricingTable(bundle.gigAmount, pricingTable)) {
+        validBundles.push(bundle);
+      } else {
+        missingPricingBundles.push(bundle);
+      }
+    }
+
+    // Group missing pricing by gig amount for reporting
+    const missingByGigAmount = new Map<number, typeof missingPricingBundles>();
+    for (const bundle of missingPricingBundles) {
+      if (!missingByGigAmount.has(bundle.gigAmount)) {
+        missingByGigAmount.set(bundle.gigAmount, []);
+      }
+      missingByGigAmount.get(bundle.gigAmount)!.push(bundle);
+    }
+
+    for (const [gigAmount, bundlesWithGig] of missingByGigAmount.entries()) {
+      pricingWarnings.push({
+        gigAmount,
+        count: bundlesWithGig.length,
+        lines: bundlesWithGig,
+      });
+    }
+
+    // Add prices to valid bundles only
+    const bundlesWithPrice = validBundles.map((bundle) => ({
       ...bundle,
       price: getPriceForGigAmount(bundle.gigAmount, pricingTable),
     }));
@@ -54,12 +84,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({
       success: true,
-      bundles,
+      bundles: validBundles,
       // Provide both raw numeric calculations and a formatted view for UI
       calculationsRaw: calculations,
       calculations: formatted,
       parseErrors: errors,
-      itemCount: bundles.length,
+      pricingWarnings, // Alert user to missing pricing entries
+      missingPricingCount: missingPricingBundles.length,
+      itemCount: validBundles.length,
     });
   } catch (error) {
     console.error("Parse error:", error);
