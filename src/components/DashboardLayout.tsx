@@ -23,20 +23,22 @@ export default function DashboardLayout({ children }: LayoutProps) {
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const isMobileView = window.innerWidth < 768;
-      setIsMobile(isMobileView);
-      setSidebarOpen(!isMobileView);
+    if (typeof window === "undefined") return;
 
-      const handleResize = () => {
-        const newIsMobile = window.innerWidth < 768;
-        setIsMobile(newIsMobile);
-        setSidebarOpen(!newIsMobile);
-      };
+    const isMobileView = window.innerWidth < 768;
+    setIsMobile(isMobileView);
+    setSidebarOpen(!isMobileView);
 
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
+    const handleResize = () => {
+      const newIsMobile = window.innerWidth < 768;
+      setIsMobile(newIsMobile);
+      if (newIsMobile) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const { data: session } = useSession();
@@ -67,13 +69,28 @@ export default function DashboardLayout({ children }: LayoutProps) {
             ? `fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ${
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
               }`
-            : `w-64`
+            : `${sidebarOpen ? "w-64" : "w-20"} transition-all duration-300`
         } bg-blue-950 border-r border-blue-900 flex flex-col shadow-xl`}
       >
         {/* Logo */}
         <div className="p-4 sm:p-6 border-b border-blue-900">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg sm:text-xl font-bold text-blue-100">BundlePro</h1>
+            {sidebarOpen && !isMobile && (
+              <h1 className="text-lg sm:text-xl font-bold text-blue-100">BundlePro</h1>
+            )}
+            {!isMobile && (
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-1 hover:bg-blue-900 rounded-lg transition ml-auto"
+                title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+              >
+                {sidebarOpen ? (
+                  <X size={20} className="text-blue-100" />
+                ) : (
+                  <Menu size={20} className="text-blue-100" />
+                )}
+              </button>
+            )}
             {isMobile && (
               <button
                 onClick={() => setSidebarOpen(false)}
@@ -97,16 +114,17 @@ export default function DashboardLayout({ children }: LayoutProps) {
                   ? "bg-blue-600 text-white"
                   : "text-blue-100 hover:bg-blue-900"
               }`}
+              title={!sidebarOpen && !isMobile ? label : ""}
             >
-              <Icon size={20} />
-              <span>{label}</span>
+              <Icon size={20} className="flex-shrink-0" />
+              {(sidebarOpen || isMobile) && <span>{label}</span>}
             </Link>
           ))}
         </nav>
 
         {/* User Info & Logout */}
         <div className="p-3 sm:p-4 border-t border-blue-900 space-y-2">
-          {session?.user && (
+          {session?.user && (sidebarOpen || isMobile) && (
             <div className="p-2 sm:p-3 bg-blue-900 rounded-lg hidden sm:block">
               <p className="text-xs text-blue-200">Logged in as</p>
               <p className="text-xs sm:text-sm font-medium text-blue-50 truncate">
@@ -117,9 +135,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-100 text-blue-900 rounded-lg hover:bg-blue-200 transition text-sm sm:text-base font-medium"
+            title={!sidebarOpen && !isMobile ? "Logout" : ""}
           >
-            <LogOut size={18} />
-            <span>Logout</span>
+            <LogOut size={18} className="flex-shrink-0" />
+            {(sidebarOpen || isMobile) && <span>Logout</span>}
           </button>
         </div>
       </div>
